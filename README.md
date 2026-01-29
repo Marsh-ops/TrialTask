@@ -12,7 +12,7 @@ This task is focused on:
 ---
 
 ## Tech assumptions
-- React (or Next.js) + TypeScript.
+- React/Next.js + TypeScript.
 - Use Tailwind for styling
 - Pixel-perfect accuracy is not required, but layout should reasonably match the screenshot.
 
@@ -195,23 +195,20 @@ Create a route at **`/contact`** that renders a contact form.
 
 ## Submission handling
 
-No real integration required. Use one of:
+No real integration required. Use the following:
 
-### Option 1 (preferred)
+### API Route (preferred)
 
 Submit to a simple internal API route or handler that:
 
 - Waits ~1 second
 - Returns success
 
-### Option 2
-
-Simulate submit using `setTimeout` and local state.
-
 ---
 
 ## Styling
 
+- Tailwind CSS
 - Clean, modern layout
 - Mobile-friendly (single column)
 - Focus/hover states on inputs and button
@@ -221,11 +218,8 @@ Simulate submit using `setTimeout` and local state.
 # Deliverables
 
 - Reusable carousel component using `products` data
-- Membership plans page that uses the carousel
+- `/plans` memberships page that uses the carousel
 - `/contact` page with form, validation, and success state
-- README notes explaining:
-  - How to run the project
-  - Where main components live
 
 ---
 
