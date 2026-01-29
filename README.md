@@ -1,36 +1,227 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trial Task — Membership Plan Carousel + Contact Form
 
-## Getting Started
+## Goal
+Build a **data-driven, reusable** membership plan UI (based on the provided screenshots in /public/screens) that cycles through plans in a **carousel** on **/plans**, and also build a **/contact** page containing a contact form.
 
-First, run the development server:
+This task is focused on:
+- Component design
+- Reusability
+- State management
+- Clean UI implementation
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech assumptions
+- React (or Next.js) + TypeScript.
+- Use Tailwind for styling
+- Pixel-perfect accuracy is not required, but layout should reasonably match the screenshot.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Provided data (single source of truth)
 
-## Learn More
+Use this array to render plan names and prices. This must be the only source of pricing data. It has been provided in /data/products.ts
 
-To learn more about Next.js, take a look at the following resources:
+```ts
+interface Product {
+  id: number;
+  name: string;
+  monthlyPrice: number;
+  totalMonthlyPrice: number;
+  totalMonthlySavings: number;
+  totalAnnualPrice: number;
+}
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+export const products: Product[] = [
+  {
+    id: 1,
+    name: 'Bronze Membership',
+    monthlyPrice: 140,
+    totalMonthlyPrice: 1680,
+    totalMonthlySavings: 420,
+    totalAnnualPrice: 2140,
+  },
+  {
+    id: 2,
+    name: 'Silver Membership',
+    monthlyPrice: 240,
+    totalMonthlyPrice: 2880,
+    totalMonthlySavings: 3420,
+    totalAnnualPrice: 540,
+  },
+  {
+    id: 3,
+    name: 'Gold Membership',
+    monthlyPrice: 340,
+    totalMonthlyPrice: 3680,
+    totalMonthlySavings: 820,
+    totalAnnualPrice: 6820,
+  },
+];
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+Where:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `products` is an array of `Product`
+- The component maps over `products` to generate slides
+- The component should work for **any length** of products
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Data → UI mapping (must follow exactly)
+
+These values must come from the `Product` fields (not hardcoded) and must be formatted as currency.
+
+| UI Element                         | Data field                     |
+|-----------------------------------|--------------------------------|
+| Top header title                  | `product.name`                |
+| Main price on the right           | `product.monthlyPrice`        |
+| Monthly option “Annual Cost”      | `product.totalMonthlyPrice`   |
+| Annual option “Annual Cost”       | `product.totalAnnualPrice`    |
+| “Your Savings”                    | `product.totalMonthlySavings` |
+
+### Example for Silver
+
+- `$240.00*` → `monthlyPrice`  
+- `$2,880.00` → `totalMonthlyPrice`  
+- `$3,420.00` → `totalAnnualPrice`  
+- `$540.00` → `totalMonthlySavings`
+
+---
+
+## UI structure per slide
+
+Each slide should visually follow the screenshot.
+
+### Left column — Membership Information
+
+- Header: **“Membership Information”**
+- Row of 3 icons + labels (static content is fine)
+- Feature list with green check / red cross icons (static content is fine)
+
+> This feature list does **not** need to come from data and can be hardcoded once.
+
+---
+
+### Right column — Payment Information
+
+- Header: **“Payment Information”**
+- Large price text showing `product.monthlyPrice`
+- Two static contact buttons:
+  - “Speak To Our Team”
+  - “Chat With Our Team”
+- “Select a payment option below” section:
+  - Monthly Fee and Annual Fee selectable options
+  - “Annual Cost” row showing both totals
+  - “Your Savings” row
+  - “12-Month Contract” row (static icons are fine)
+- “Purchase Membership” button (no backend logic required)
+
+---
+
+## Payment option selection behavior
+
+- Implement UI state for **Monthly vs Annual**
+- Selected option must be visually highlighted
+- This is **UI-only** — no payment logic required
+
+---
+
+## Currency formatting
+
+All money values must:
+
+- Include dollar sign
+- Include comma separators
+- Always show 2 decimals
+
+### Examples
+
+- `240` → `$240.00`  
+- `2880` → `$2,880.00`
+
+---
+
+# Part B — Contact Page (`/contact`)
+
+## Requirement
+
+Create a route at **`/contact`** that renders a contact form.
+
+---
+
+## Form fields (minimum)
+
+- Full name (required)
+- Email (required, basic email validation)
+- Phone (optional)
+- Subject (required)
+- Message (required, textarea)
+
+---
+
+## UX requirements
+
+- Inline validation messages (or clear error state)
+- Disable submit button while submitting
+- On successful submit:
+  - Show success message
+  - Reset form
+
+---
+
+## Submission handling
+
+No real integration required. Use one of:
+
+### Option 1 (preferred)
+
+Submit to a simple internal API route or handler that:
+
+- Waits ~1 second
+- Returns success
+
+### Option 2
+
+Simulate submit using `setTimeout` and local state.
+
+---
+
+## Styling
+
+- Clean, modern layout
+- Mobile-friendly (single column)
+- Focus/hover states on inputs and button
+
+---
+
+# Deliverables
+
+- Reusable carousel component using `products` data
+- Membership plans page that uses the carousel
+- `/contact` page with form, validation, and success state
+- README notes explaining:
+  - How to run the project
+  - Where main components live
+
+---
+
+# Acceptance Checklist
+
+## Carousel
+
+- [ ] Slides generated by mapping over `products`
+- [ ] Title uses `product.name`
+- [ ] Main price uses `product.monthlyPrice`
+- [ ] Monthly “Annual Cost” uses `product.totalMonthlyPrice`
+- [ ] Annual “Annual Cost” uses `product.totalAnnualPrice`
+- [ ] “Your Savings” uses `product.totalMonthlySavings`
+- [ ] Monthly/Annual toggle is interactive
+- [ ] Currency formatting is correct
+
+## Contact
+
+- [ ] `/contact` route exists
+- [ ] Form has required fields + validation
+- [ ] Submit shows loading/disabled state
+- [ ] Success message appears and form resets
