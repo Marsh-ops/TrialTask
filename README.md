@@ -1,19 +1,22 @@
-# Trial Task — Membership Plan Carousel + Checkout Flow (Stripe)
+# Trial Task — Membership Plan Carousel + Cart + Checkout Flow (Stripe)
 
 ## Goal
-Build a **data-driven, reusable** membership plan UI (based on the provided screenshot) that cycles through plans in a **carousel**, and implement a full **checkout flow** using Stripe.
+Build a **data-driven, reusable** membership plan UI (based on the provided screenshots) that cycles through plans in a **carousel**, includes a **global cart in the navbar**, and implements a full **checkout flow** with a dedicated cart/checkout page using **Stripe**.
 
 This task is focused on:
 - Component design and reusability
 - State management across pages
 - Clean UI implementation
 - Integrating a real payment provider (Stripe) using Next.js API routes
+- Basic cart and checkout architecture
+
+Stripe keys will be provided separately.
 
 ---
 
 ## Tech assumptions
 - Next.js + React + TypeScript.
-- Styling approach is up to you (Tailwind/CSS modules/etc).
+- Use Tailwind CSS for styling
 - State management is up to you:
   - You may use local state, React Context, Zustand, Redux, etc.
   - If unsure, **React Context is recommended**.
@@ -80,7 +83,6 @@ The carousel must be:
 ## Reusable component API
 
 Create a reusable component similar to:
-
 `MembershipPlansCarousel({ products })`
 
 
@@ -103,13 +105,13 @@ Where:
 
 These values must come from the `Product` fields (not hardcoded) and must be formatted as currency.
 
-| UI Element                        | Data field                    |
-|----------------------------------|-------------------------------|
-| Top header title                 | `product.name`               |
-| Main price on the right          | `product.monthlyPrice`       |
-| Monthly option “Annual Cost”     | `product.totalMonthlyPrice`  |
-| Annual option “Annual Cost”      | `product.totalAnnualPrice`   |
-| “Your Savings”                   | `product.totalMonthlySavings`|
+| UI Element                    | Data field                     |
+|------------------------------|--------------------------------|
+| Top header title             | `product.name`                |
+| Main price on the right      | `product.monthlyPrice`        |
+| Monthly option “Annual Cost” | `product.totalMonthlyPrice`   |
+| Annual option “Annual Cost”  | `product.totalAnnualPrice`    |
+| “Your Savings”               | `product.totalMonthlySavings` |
 
 ### Example for Silver
 
@@ -155,7 +157,7 @@ Each slide should visually follow the screenshot.
 
 - Implement UI state for **Monthly vs Annual**
 - Selected option must be visually highlighted
-- This selection must be persisted and available on the checkout page
+- This selection must be persisted and available on the cart/checkout page
 
 ---
 
@@ -172,6 +174,8 @@ All money values must:
 - `240` → `$240.00`  
 - `2880` → `$2,880.00`  
 
+---
+
 # Navigation Bar + Cart
 
 ## Requirement
@@ -180,9 +184,9 @@ Implement a **global navigation bar** that is visible across the app.
 
 The navigation bar must include:
 
-- Logo / site name (static)
-- Link to Membership Plans page
-- Cart icon / Cart section
+- Logo / site name (static)  
+- Link to Membership Plans page  
+- Cart icon / Cart section  
 
 ---
 
@@ -208,21 +212,22 @@ Cart state must persist across pages.
 
 You may use:
 
-- React Context (recommended if unsure)
-- Zustand / Redux / Jotai
+- React Context (recommended if unsure)  
+- Zustand / Redux / Jotai  
 - Or URL params (if cleanly implemented)
 
 The same state should be used for:
-- Carousel selection
-- Cart display
-- Checkout page
+
+- Carousel selection  
+- Cart display  
+- Checkout page  
 
 ---
 
 ## UI requirements
 
-- Cart should be visible in the navbar at all times
-- Cart should clearly show the current price
+- Cart should be visible in the navbar at all times  
+- Cart should clearly show the current price  
 - If no membership is selected:
   - Cart should show an empty state (e.g. “No plan selected”)
 
@@ -237,60 +242,58 @@ The same state should be used for:
 
 ## Acceptance Checklist — Navbar & Cart
 
-- [ ] Navbar exists on all pages
-- [ ] Cart displays selected membership
-- [ ] Cart displays correct price
-- [ ] Cart persists across page navigation
-- [ ] Clicking cart navigates to `/checkout`
-- [ ] Cart state matches checkout state
-
+- [ ] Navbar exists on all pages  
+- [ ] Cart displays selected membership  
+- [ ] Cart displays correct price  
+- [ ] Cart persists across page navigation  
+- [ ] Clicking cart navigates to `/checkout`  
+- [ ] Cart state matches checkout state  
 
 ---
 
-# Part B — Checkout Page (`/checkout`)
+# Part B — Cart / Checkout Page (`/checkout`)
+
+This page should visually resemble the provided cart/checkout screenshot.
 
 ## Requirement
 
-Create a route at **`/checkout`** that represents the final checkout flow after a membership is selected.
+Create a route at **`/checkout`** that represents the final cart and checkout flow after a membership is selected.
 
-The selected membership and billing option (monthly/annual) must be available on this page via state management.
+This page acts as **both cart summary and checkout form**.
 
-You may use:
-
-- React Context (recommended if unsure)  
-- Or any other state solution (Zustand, Redux, URL params, etc)
+The selected membership and billing option must be available on this page via state management.
 
 ---
 
 ## Checkout page structure
 
-### Section 1 — Membership Summary
+### Section 1 — Membership Summary (Right side)
 
 Display:
 
 - Selected plan name  
 - Selected billing type (Monthly / Annual)  
-- Final price being charged  
+- Base price (ex GST)  
+- GST amount (you can assume 10%)  
+- Final total to pay today  
 
-This must come from the same state as the carousel selection.
+This data must come from the same state as the carousel/cart.
 
 ---
 
-### Section 2 — Customer Details Form
+### Section 2 — Customer Details Form (Left side)
 
-Form fields (minimum):
+Form fields (minimum, based on screenshot):
 
-- Full name (required)  
-- Email (required, basic email validation)  
-- Phone (optional)  
-- Company name (optional)  
-- Address (optional)  
+- Company name  
+- First name  
+- Last name  
+- Email  
+- Mobile number  
+- Business address  
+- Country  
 
-#### UX requirements
-
-- Inline validation messages  
-- Disable submit button while submitting  
-- All fields must be controlled inputs  
+All fields should be controlled inputs.
 
 ---
 
@@ -303,6 +306,8 @@ Integrate **Stripe Elements** to collect card details:
 - CVC  
 
 Do **not** build your own card input fields.
+
+The card UI should visually fit into the checkout layout like the screenshot.
 
 ---
 
@@ -319,16 +324,16 @@ This must be a real Stripe integration using:
 ## Backend (Next.js API route)
 
 Create an API route such as:
-
 `POST /api/create-payment-intent`
 
 
 This route should:
 
 Receive:
+
 - Selected product  
 - Billing type  
-- Final price  
+- Final price (including GST)  
 
 Then:
 
@@ -346,7 +351,7 @@ On form submit:
 3. Use Stripe Elements to confirm card payment  
 4. On success:
    - Show success screen or message  
-   - Clear checkout state  
+   - Clear cart / checkout state  
 
 No webhooks required for this task.
 
@@ -358,6 +363,7 @@ You must persist across pages:
 
 - Selected product  
 - Monthly vs Annual choice  
+- Cart data  
 
 State management is up to you:
 
@@ -371,6 +377,7 @@ State management is up to you:
 
 - Reusable carousel component using `products` data  
 - Membership plans page that uses the carousel  
+- Global navbar with cart  
 - `/checkout` page with:
   - Membership summary  
   - Customer details form  
@@ -387,22 +394,25 @@ State management is up to you:
 
 ## Carousel
 
-- [ ] Slides generated by mapping over `products`
-- [ ] Title uses `product.name`
-- [ ] Main price uses `product.monthlyPrice`
-- [ ] Monthly “Annual Cost” uses `product.totalMonthlyPrice`
-- [ ] Annual “Annual Cost” uses `product.totalAnnualPrice`
-- [ ] “Your Savings” uses `product.totalMonthlySavings`
-- [ ] Monthly/Annual toggle is interactive
-- [ ] Currency formatting is correct
-- [ ] Clicking “Purchase Membership” navigates to `/checkout`
+- [ ] Slides generated by mapping over `products`  
+- [ ] Title uses `product.name`  
+- [ ] Main price uses `product.monthlyPrice`  
+- [ ] Monthly “Annual Cost” uses `product.totalMonthlyPrice`  
+- [ ] Annual “Annual Cost” uses `product.totalAnnualPrice`  
+- [ ] “Your Savings” uses `product.totalMonthlySavings`  
+- [ ] Monthly/Annual toggle is interactive  
+- [ ] Currency formatting is correct  
+- [ ] Clicking “Purchase Membership” navigates to `/checkout`  
 
-## Checkout
+## Cart / Checkout
 
-- [ ] `/checkout` route exists
-- [ ] Selected plan persists from plans page
-- [ ] Customer form with validation exists
-- [ ] Stripe Elements used for card input
-- [ ] Next.js API route creates PaymentIntent
-- [ ] Payment confirmation works end-to-end
-- [ ] Success state shown after payment
+- [ ] `/checkout` route exists  
+- [ ] Selected plan persists from plans page  
+- [ ] Cart summary matches selection  
+- [ ] GST and totals calculated correctly  
+- [ ] Customer form exists and is controlled  
+- [ ] Stripe Elements used for card input  
+- [ ] Next.js API route creates PaymentIntent  
+- [ ] Payment confirmation works end-to-end  
+- [ ] Success state shown after payment  
+
