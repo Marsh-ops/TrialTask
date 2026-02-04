@@ -308,7 +308,6 @@ This data must come from the same state as the carousel selection.
 
 - [ ] Displays selected membership  
 - [ ] Shows correct pricing + GST  
-- [ ] Coupon input exists  
 - [ ] Terms checkbox required to continue  
 - [ ] Button navigates to `/checkout`  
 - [ ] No Stripe logic on this page  
