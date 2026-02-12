@@ -3,9 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
-import { loadStripe } from '@stripe/stripe-js';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface PaymentDetailsSectionProps {
   planName?: string;
@@ -34,26 +31,19 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
   onCountryChange,
   onPayNow,
 }) => {
-  const stripe = useStripe();
-  const elements = useElements();
+  const stripe = useStripe();       // client-side hook
+  const elements = useElements();   // client-side hook
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null; // prevent SSR issues
 
-  if (!mounted) return null; // Prevent SSR rendering issues
-
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
+  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handlePay = async () => {
     if (!stripe || !elements) return toast.error('Stripe not loaded yet');
 
-    // Validate required fields
     const requiredFields = [
       { label: 'First Name', value: firstName },
       { label: 'Last Name', value: lastName },
@@ -79,7 +69,6 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
     setLoading(true);
 
     try {
-      // Request PaymentIntent from backend
       const res = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
