@@ -578,3 +578,5 @@ The Vercel link should allow:
 - Making Stripe test payments end-to-end  
 
 No local or development-only links will be accepted.
+#   T r i a l T a s k  
+ 
