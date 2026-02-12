@@ -33,3 +33,29 @@ Stripe API
 Stripe Elements
 
 Tailwind CSS
+
+## How to use
+
+1) Click on Memberships in the Navbar
+
+2) Use carousel to select plan
+
+3) Purchase membership
+
+4) Apply coupon code of "SAVE10" for a 10% discount
+
+5) Accept terms and conditions
+
+6) Enter details
+
+7) card details you can use:
+
+Card Number: 4242 4242 4242 4242
+
+Expiry: 12/34
+
+CVC: 123
+
+Country: AU
+
+8) Click pay now!
