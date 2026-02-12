@@ -1,12 +1,6 @@
 'use client';
-import React from 'react';
-import {
-  CardNumberElement,
-  CardExpiryElement,
-  CardCvcElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
+import React, { useState } from 'react';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
 
 interface PaymentDetailsSectionProps {
@@ -20,9 +14,7 @@ interface PaymentDetailsSectionProps {
   businessAddress: string;
   country: string;
   onCountryChange: (value: string) => void;
-  onPayNow: () => void;
-  loading?: boolean;
-  setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  onPayNow: () => void; // callback after success
 }
 
 const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
@@ -37,17 +29,13 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
   country,
   onCountryChange,
   onPayNow,
-  loading,
-  setLoading,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const [loading, setLoading] = useState(false);
 
   const handlePay = async () => {
     if (!stripe || !elements) return toast.error('Stripe not loaded yet');
-    if (loading) return;
-
-    setLoading?.(true);
 
     // Validate required fields
     const requiredFields = [
@@ -63,10 +51,18 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
     for (const field of requiredFields) {
       if (!field.value.trim()) {
         toast.error(`Please fill in your ${field.label}`);
-        setLoading?.(false);
         return;
       }
     }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await fetch('/api/create-payment-intent', {
@@ -80,13 +76,12 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
       });
 
       const data = await res.json();
-      const clientSecret = data.clientSecret;
-      if (!clientSecret) throw new Error('PaymentIntent not created');
+      if (!data.clientSecret) throw new Error('PaymentIntent not created');
 
-      const cardElement = elements.getElement(CardNumberElement);
+      const cardElement = elements.getElement(CardElement);
       if (!cardElement) throw new Error('Card details not entered');
 
-      const result = await stripe.confirmCardPayment(clientSecret, {
+      const result = await stripe.confirmCardPayment(data.clientSecret, {
         payment_method: {
           card: cardElement,
           billing_details: {
@@ -100,6 +95,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
       if (result.error) {
         toast.error(result.error.message || 'Payment failed');
       } else if (result.paymentIntent?.status === 'succeeded') {
+        toast.success('✅ Payment successful!');
         onPayNow?.();
       }
     } catch (err: any) {
@@ -107,49 +103,31 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
       toast.error(err.message || 'Payment error');
     }
 
-    setLoading?.(false);
+    setLoading(false);
   };
 
   return (
-    <div className="grid grid-cols-4 gap-4">
-      {/* Card + Country */}
-      <div className="col-span-2 space-y-4">
-        <label className="block text-sm font-semibold">Card Number</label>
-        <div className="px-3 py-2 border rounded">
-          <CardNumberElement options={{ style: { base: { fontSize: '16px' } } }} />
-        </div>
-
-        <label className="block text-sm font-semibold">Country</label>
-        <input
-          type="text"
-          value={country ?? ''}
-          onChange={(e) => onCountryChange(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
-        />
+    <div className="space-y-4">
+      <label className="block text-sm font-semibold">Card Details</label>
+      <div className="px-3 py-2 border rounded">
+        <CardElement options={{ style: { base: { fontSize: '16px' } } }} />
       </div>
 
-      {/* Expiry */}
-      <div className="space-y-4">
-        <label className="block text-sm font-semibold">Expiry</label>
-        <div className="px-3 py-2 border rounded">
-          <CardExpiryElement options={{ style: { base: { fontSize: '16px' } } }} />
-        </div>
-      </div>
+      <label className="block text-sm font-semibold">Country</label>
+      <input
+        type="text"
+        value={country ?? ''}
+        onChange={(e) => onCountryChange(e.target.value)}
+        className="w-full px-3 py-2 border rounded"
+      />
 
-      {/* CVC + Pay */}
-      <div className="space-y-4">
-        <label className="block text-sm font-semibold">CVC</label>
-        <div className="px-3 py-2 border rounded">
-          <CardCvcElement options={{ style: { base: { fontSize: '16px' } } }} />
-        </div>
-        <button
-          disabled={loading}
-          onClick={handlePay}
-          className="w-full bg-[#002a25] text-white py-3 rounded mt-2 hover:bg-[#003d35] transition-colors disabled:opacity-50"
-        >
-          {loading ? 'Processing...' : 'Pay Now'}
-        </button>
-      </div>
+      <button
+        onClick={handlePay}
+        disabled={loading}
+        className="w-full bg-[#002a25] text-white py-3 rounded mt-2 hover:bg-[#003d35] transition-colors disabled:opacity-50"
+      >
+        {loading ? 'Processing...' : 'Pay Now'}
+      </button>
     </div>
   );
 };
