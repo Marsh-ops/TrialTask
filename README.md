@@ -1,5 +1,7 @@
 # Next.js Stripe Checkout – Trial Task
 
+Test it here: https://task-tracker-dashboard-liard.vercel.app/
+
 A fully functional Stripe-powered checkout system built with Next.js 13 (App Router) and TypeScript.
 
 This project demonstrates a complete end-to-end payment flow including:
