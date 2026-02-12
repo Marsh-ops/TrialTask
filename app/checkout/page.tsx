@@ -66,7 +66,7 @@ const CheckoutPage = () => {
           </div>
 
           {/* RIGHT: Order Summary */}
-          <div className="flex flex-col h-full">
+          {/* <div className="flex flex-col h-full">
             <OrderSummary
               planName={planName ?? 'No plan selected'}
               planPrice={`$${(price ?? 0).toFixed(2)}`}
@@ -78,7 +78,7 @@ const CheckoutPage = () => {
         </div>
 
         {/* Payment Section */}
-        <div className="px-6 pb-6">
+        {/* <div className="px-6 pb-6">
           <Elements stripe={stripePromise}>
             <PaymentDetailsSection
               planName={planName ?? 'No plan selected'}
@@ -98,6 +98,7 @@ const CheckoutPage = () => {
               setLoading={setLoading}
             />
           </Elements>
+        </div> */}
         </div>
       </div>
     </div>
