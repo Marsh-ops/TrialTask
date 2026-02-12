@@ -96,7 +96,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         toast.error(result.error.message || 'Payment failed');
       } else if (result.paymentIntent?.status === 'succeeded') {
         toast.success('✅ Payment successful!');
-        onPayNow?.();
+        onPayNow();
       }
     } catch (err: any) {
       console.error(err);

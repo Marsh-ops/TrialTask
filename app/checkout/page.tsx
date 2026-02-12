@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/CartContext';
 import CheckoutHeader from '@/components/checkout/CheckoutHeader';
@@ -11,7 +11,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import toast, { Toaster } from 'react-hot-toast';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '');
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -27,6 +27,10 @@ const CheckoutPage = () => {
   });
 
   const [paymentData, setPaymentData] = useState({ country: '' });
+
+  // Hydration fix: render Stripe Elements only on client
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => setIsClient(true), []);
 
   const subtotal = price ?? 0;
   const gst = subtotal * 0.1;
@@ -55,10 +59,12 @@ const CheckoutPage = () => {
       <Toaster position="top-right" />
       <div className="w-full max-w-5xl bg-white overflow-hidden">
         <CheckoutHeader />
+
         <div className="grid grid-cols-2 gap-12 p-6">
           <div className="flex flex-col">
             <CheckoutForm formData={formData} onChange={handleFormChange} />
           </div>
+
           <div className="flex flex-col h-full">
             <OrderSummary
               planName={planName ?? 'No plan selected'}
@@ -70,22 +76,27 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        <div className="px-6 pb-6 mt-6">
-          <Elements stripe={stripePromise}>
-            <PaymentDetailsSection
-              planName={planName ?? 'Premium Plan'}
-              total={total}
-              firstName={formData.firstName}
-              lastName={formData.lastName}
-              email={formData.email}
-              companyName={formData.companyName}
-              mobileNo={formData.mobileNo}
-              businessAddress={formData.businessAddress}
-              country={paymentData.country}
-              onCountryChange={value => setPaymentData({ country: value })}
-              onPayNow={handlePaymentSuccess}
-            />
-          </Elements>
+        {/* Stripe Elements wrapper - client only */}
+        <div className="px-6 pb-6">
+          {isClient && stripePromise && (
+            <Elements stripe={stripePromise}>
+              <PaymentDetailsSection
+                planName={planName ?? 'Premium Plan'}
+                total={total}
+                firstName={formData.firstName}
+                lastName={formData.lastName}
+                email={formData.email}
+                companyName={formData.companyName}
+                mobileNo={formData.mobileNo}
+                businessAddress={formData.businessAddress}
+                country={paymentData.country}
+                onCountryChange={(value) =>
+                  setPaymentData(prev => ({ ...prev, country: value }))
+                }
+                onPayNow={handlePaymentSuccess}
+              />
+            </Elements>
+          )}
         </div>
       </div>
     </div>
