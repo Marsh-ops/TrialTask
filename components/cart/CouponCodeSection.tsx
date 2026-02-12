@@ -1,13 +1,12 @@
-'use client';
-
+import { useCart } from '@/components/CartContext';
 import React, { useState } from 'react';
 
 const CouponCodeSection: React.FC = () => {
   const [couponCode, setCouponCode] = useState('');
+  const { applyCoupon } = useCart();
 
   const handleApply = () => {
-    // TODO: Implement coupon application logic
-    console.log('Applying coupon:', couponCode);
+    applyCoupon(couponCode);
   };
 
   return (

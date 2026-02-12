@@ -3,16 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer"
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { CartProvider } from "@/components/CartContext";
 
 export const metadata: Metadata = {
   title: "Anderson",
@@ -26,12 +17,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`antialiased`}>
+        <CartProvider>
         <Header />
           {children}  
         <Footer />
+        </CartProvider>
       </body>
     </html>
   );
