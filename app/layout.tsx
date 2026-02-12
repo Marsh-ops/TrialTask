@@ -18,11 +18,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <CartProvider>
+        {/* <CartProvider>
         <Header />
           {children}  
         <Footer />
-        </CartProvider>
+        </CartProvider> */}
       </body>
     </html>
   );
