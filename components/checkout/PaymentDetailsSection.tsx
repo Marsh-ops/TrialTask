@@ -7,13 +7,13 @@ import toast from 'react-hot-toast';
 interface PaymentDetailsSectionProps {
   planName?: string;
   total?: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  companyName?: string;
-  mobileNo?: string;
-  businessAddress?: string;
-  country?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  companyName: string;
+  mobileNo: string;
+  businessAddress: string;
+  country: string;
   onCountryChange: (value: string) => void;
   onPayNow: () => void;
 }
@@ -21,23 +21,23 @@ interface PaymentDetailsSectionProps {
 const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
   planName = 'No plan selected',
   total = 0,
-  firstName = '',
-  lastName = '',
-  email = '',
-  companyName = '',
-  mobileNo = '',
-  businessAddress = '',
-  country = '',
+  firstName,
+  lastName,
+  email,
+  companyName,
+  mobileNo,
+  businessAddress,
+  country,
   onCountryChange,
   onPayNow,
 }) => {
-  const stripe = useStripe();       // client-side hook
-  const elements = useElements();   // client-side hook
+  const stripe = useStripe();
+  const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
-  if (!mounted) return null; // prevent SSR issues
+  if (!mounted) return null; // Prevent SSR issues
 
   const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -112,9 +112,49 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-semibold">Card Details</label>
-      <div className="px-3 py-2 border rounded">
-        <CardElement options={{ style: { base: { fontSize: '16px' } } }} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <input
+          type="text"
+          placeholder="First Name"
+          value={firstName}
+          onChange={(e) => onCountryChange(e.target.value)}
+          className="w-full px-3 py-2 border rounded"
+        />
+        <input
+          type="text"
+          placeholder="Last Name"
+          value={lastName}
+          onChange={(e) => onCountryChange(e.target.value)}
+          className="w-full px-3 py-2 border rounded"
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => onCountryChange(e.target.value)}
+          className="w-full px-3 py-2 border rounded"
+        />
+        <input
+          type="text"
+          placeholder="Company Name"
+          value={companyName}
+          onChange={(e) => onCountryChange(e.target.value)}
+          className="w-full px-3 py-2 border rounded"
+        />
+        <input
+          type="text"
+          placeholder="Mobile No"
+          value={mobileNo}
+          onChange={(e) => onCountryChange(e.target.value)}
+          className="w-full px-3 py-2 border rounded"
+        />
+        <input
+          type="text"
+          placeholder="Business Address"
+          value={businessAddress}
+          onChange={(e) => onCountryChange(e.target.value)}
+          className="w-full px-3 py-2 border rounded"
+        />
       </div>
 
       <label className="block text-sm font-semibold">Country</label>
@@ -124,6 +164,11 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         onChange={(e) => onCountryChange(e.target.value)}
         className="w-full px-3 py-2 border rounded"
       />
+
+      <label className="block text-sm font-semibold">Card Details</label>
+      <div className="px-3 py-2 border rounded">
+        <CardElement options={{ style: { base: { fontSize: '16px' } } }} />
+      </div>
 
       <button
         onClick={handlePay}

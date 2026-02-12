@@ -1,53 +1,145 @@
 'use client';
 
-import React, { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
-import PaymentDetailsSection from '@/components/checkout/PaymentDetailsSection';
-import { useCart } from '@/components/CartContext';
+import React, { useState, useEffect, useMemo } from 'react';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import toast from 'react-hot-toast';
 
-// Load Stripe with your public key (client-side)
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+interface PaymentDetailsSectionProps {
+  planName?: string;
+  total?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  companyName?: string;
+  mobileNo?: string;
+  businessAddress?: string;
+  country?: string;
+  onCountryChange: (value: string) => void;
+  onPayNow: () => void;
+}
 
-const CheckoutPage: React.FC = () => {
-  const { planName, price } = useCart();
-  const [country, setCountry] = useState('');
+const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
+  planName = 'No plan selected',
+  total = 0,
+  firstName = '',
+  lastName = '',
+  email = '',
+  companyName = '',
+  mobileNo = '',
+  businessAddress = '',
+  country = '',
+  onCountryChange,
+  onPayNow,
+}) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const handlePaymentSuccess = () => {
-    alert('Payment successful!');
-    // Optional: clear cart, redirect to thank-you page, etc.
+  // Prevent SSR issues
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+
+  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const requiredFields = useMemo(
+    () => [
+      { label: 'First Name', value: firstName },
+      { label: 'Last Name', value: lastName },
+      { label: 'Email', value: email },
+      { label: 'Company Name', value: companyName },
+      { label: 'Mobile No', value: mobileNo },
+      { label: 'Business Address', value: businessAddress },
+      { label: 'Country', value: country },
+    ],
+    [firstName, lastName, email, companyName, mobileNo, businessAddress, country]
+  );
+
+  const handlePay = async () => {
+    if (!stripe || !elements) return toast.error('Stripe not loaded yet');
+
+    // Validate required fields
+    for (const field of requiredFields) {
+      if (!field.value.trim()) {
+        toast.error(`Please fill in your ${field.label}`);
+        return;
+      }
+    }
+
+    if (!validateEmail(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: planName,
+          billingType: 'Monthly',
+          totalAmount: total,
+        }),
+      });
+
+      const data = await res.json();
+      if (!data.clientSecret) throw new Error(data.error || 'PaymentIntent not created');
+
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) throw new Error('Card details not entered');
+
+      const result = await stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: `${firstName} ${lastName}`,
+            email,
+            address: { country },
+          },
+        },
+      });
+
+      if (result.error) {
+        toast.error(result.error.message || 'Payment failed');
+      } else if (result.paymentIntent?.status === 'succeeded') {
+        toast.success('✅ Payment successful!');
+        onPayNow();
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Payment error');
+    }
+
+    setLoading(false);
   };
 
-  if (!planName || price === null) {
-    return (
-      <div className="p-8 text-center">
-        <h2 className="text-xl font-semibold">No plan selected</h2>
-        <p>Please select a membership plan first.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+    <div className="space-y-4">
+      <label className="block text-sm font-semibold">Card Details</label>
+      <div className="px-3 py-2 border rounded">
+        <CardElement options={{ style: { base: { fontSize: '16px' } } }} />
+      </div>
 
-      <Elements stripe={stripePromise}>
-        <PaymentDetailsSection
-          planName={planName}
-          total={price}
-          firstName=""
-          lastName=""
-          email=""
-          companyName=""
-          mobileNo=""
-          businessAddress=""
-          country={country}
-          onCountryChange={setCountry}
-          onPayNow={handlePaymentSuccess}
-        />
-      </Elements>
+      <label className="block text-sm font-semibold">Country</label>
+      <input
+        type="text"
+        value={country}
+        onChange={(e) => onCountryChange(e.target.value)}
+        className="w-full px-3 py-2 border rounded"
+      />
+
+      <button
+        onClick={handlePay}
+        disabled={loading}
+        aria-busy={loading}
+        className="w-full bg-[#002a25] text-white py-3 rounded mt-2 hover:bg-[#003d35] transition-colors disabled:opacity-50"
+      >
+        {loading ? 'Processing...' : 'Pay Now'}
+      </button>
     </div>
   );
 };
 
-export default CheckoutPage;
+export default PaymentDetailsSection;

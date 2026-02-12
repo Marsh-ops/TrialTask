@@ -1,22 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart } from '@phosphor-icons/react';
-import { useCart } from "@/components/CartContext";
+import { useCart } from '@/components/CartContext';
 
 const HeaderContent: React.FC = () => {
   const { planName, price, billingType } = useCart();
 
-  const formatCurrency = (amount: number) => {
+  const formattedPrice = useMemo(() => {
+    if (!price) return '';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
-  };
+    }).format(price);
+  }, [price]);
 
   return (
     <header className="bg-[#002a25] text-white px-6 py-4">
@@ -38,12 +39,12 @@ const HeaderContent: React.FC = () => {
 
         {/* Cart button */}
         <div className="flex items-center gap-2">
-          <Link href="/cart">
+          <Link href="/cart" aria-label="View Cart">
             <button className="flex items-center gap-2 bg-white text-black py-2 px-4 rounded shadow hover:bg-gray-100 transition-colors">
               <ShoppingCart size={24} weight="bold" />
               {price !== null && planName && (
                 <span>
-                  {planName} – {billingType === 'annual' ? 'Annual' : 'Monthly'}: {formatCurrency(price)}
+                  {planName} – {billingType === 'annual' ? 'Annual' : 'Monthly'}: {formattedPrice}
                 </span>
               )}
             </button>

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
+import toast from 'react-hot-toast';
 
 interface CartContextType {
   planName: string | null;
@@ -35,28 +36,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const applyCoupon = (code: string) => {
-    if (code.trim().toUpperCase() === 'SAVE10' && price) {
-      setDiscount(price * 0.1);
-      alert('Coupon applied: 10% off!');
-    } else {
-      setDiscount(0);
-      alert('Invalid coupon code');
+    if (!price) return;
+
+    const normalizedCode = code.trim().toUpperCase();
+
+    switch (normalizedCode) {
+      case 'SAVE10':
+        setDiscount(price * 0.1);
+        toast.success('Coupon applied: 10% off!');
+        break;
+      default:
+        setDiscount(0);
+        toast.error('Invalid coupon code');
     }
   };
 
-  return (
-    <CartContext.Provider
-      value={{ planName, price, billingType, setPlan, clearCart, applyCoupon, discount }}
-    >
-      {children}
-    </CartContext.Provider>
+  // Memoize context value to avoid unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({ planName, price, billingType, setPlan, clearCart, applyCoupon, discount }),
+    [planName, price, billingType, discount]
   );
+
+  return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
+  if (!context) throw new Error('useCart must be used within a CartProvider');
   return context;
 };
