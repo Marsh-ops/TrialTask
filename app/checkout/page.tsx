@@ -1,17 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useCart } from '@/components/CartContext';
 import CheckoutHeader from '@/components/checkout/CheckoutHeader';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import OrderSummary from '@/components/checkout/OrderSummary';
-import PaymentDetailsSection from '@/components/checkout/PaymentDetailsSection';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import toast, { Toaster } from 'react-hot-toast';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '');
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+// Dynamic import of PaymentDetailsSection with SSR disabled
+const PaymentDetailsSectionNoSSR = dynamic(
+  () => import('@/components/checkout/PaymentDetailsSection'),
+  { ssr: false }
+);
 
 const CheckoutPage = () => {
   const router = useRouter();
@@ -28,18 +34,15 @@ const CheckoutPage = () => {
 
   const [paymentData, setPaymentData] = useState({ country: '' });
 
-  // Hydration fix: render Stripe Elements only on client
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => setIsClient(true), []);
-
   const subtotal = price ?? 0;
   const gst = subtotal * 0.1;
   const total = subtotal + gst;
 
   const handleFormChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // This will be passed down to PaymentDetailsSection
   const handlePaymentSuccess = () => {
     clearCart();
     setFormData({
@@ -51,6 +54,7 @@ const CheckoutPage = () => {
       businessAddress: '',
     });
     setPaymentData({ country: '' });
+    toast.success('✅ Payment successful!');
     router.push('/plans');
   };
 
@@ -61,10 +65,12 @@ const CheckoutPage = () => {
         <CheckoutHeader />
 
         <div className="grid grid-cols-2 gap-12 p-6">
+          {/* Left: Checkout Form */}
           <div className="flex flex-col">
             <CheckoutForm formData={formData} onChange={handleFormChange} />
           </div>
 
+          {/* Right: Order Summary */}
           <div className="flex flex-col h-full">
             <OrderSummary
               planName={planName ?? 'No plan selected'}
@@ -76,27 +82,25 @@ const CheckoutPage = () => {
           </div>
         </div>
 
-        {/* Stripe Elements wrapper - client only */}
+        {/* Stripe Payment Section */}
         <div className="px-6 pb-6">
-          {isClient && stripePromise && (
-            <Elements stripe={stripePromise}>
-              <PaymentDetailsSection
-                planName={planName ?? 'Premium Plan'}
-                total={total}
-                firstName={formData.firstName}
-                lastName={formData.lastName}
-                email={formData.email}
-                companyName={formData.companyName}
-                mobileNo={formData.mobileNo}
-                businessAddress={formData.businessAddress}
-                country={paymentData.country}
-                onCountryChange={(value) =>
-                  setPaymentData(prev => ({ ...prev, country: value }))
-                }
-                onPayNow={handlePaymentSuccess}
-              />
-            </Elements>
-          )}
+          <Elements stripe={stripePromise}>
+            <PaymentDetailsSectionNoSSR
+              planName={planName ?? 'Premium Plan'}
+              total={total}
+              firstName={formData.firstName}
+              lastName={formData.lastName}
+              email={formData.email}
+              companyName={formData.companyName}
+              mobileNo={formData.mobileNo}
+              businessAddress={formData.businessAddress}
+              country={paymentData.country}
+              onCountryChange={(value) =>
+                setPaymentData((prev) => ({ ...prev, country: value }))
+              }
+              onPayNow={handlePaymentSuccess} // <-- triggers after successful payment
+            />
+          </Elements>
         </div>
       </div>
     </div>

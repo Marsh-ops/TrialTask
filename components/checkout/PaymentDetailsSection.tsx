@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
@@ -14,7 +15,7 @@ interface PaymentDetailsSectionProps {
   businessAddress: string;
   country: string;
   onCountryChange: (value: string) => void;
-  onPayNow: () => void; // callback after success
+  onPayNow: () => void; // callback after successful payment
 }
 
 const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
@@ -33,6 +34,12 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
+
+  const validateEmail = (email: string) => {
+    // Simple regex for email validation
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
 
   const handlePay = async () => {
     if (!stripe || !elements) return toast.error('Stripe not loaded yet');
@@ -56,15 +63,15 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!validateEmail(email)) {
       toast.error('Please enter a valid email address');
       return;
     }
-
+    
     setLoading(true);
 
     try {
+      // Request PaymentIntent from backend
       const res = await fetch('/api/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,7 +103,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         toast.error(result.error.message || 'Payment failed');
       } else if (result.paymentIntent?.status === 'succeeded') {
         toast.success('✅ Payment successful!');
-        onPayNow();
+        onPayNow(); // trigger parent callback
       }
     } catch (err: any) {
       console.error(err);
