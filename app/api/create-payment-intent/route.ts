@@ -1,34 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { NextRequest, NextResponse } from 'next/server';
+
+// Use your STRIPE_SECRET_KEY (server-side only)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2026-01-28.clover',
+});
 
 export async function POST(req: NextRequest) {
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2026-01-28.clover',
-    });
     const { productName, billingType, totalAmount } = await req.json();
 
-    const totalAmountNum = Number(totalAmount);
-    if (!totalAmountNum || totalAmountNum <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid total amount' },
-        { status: 400 }
-      );
+    if (!productName || !billingType || !totalAmount) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    const amountInCents = Math.round(totalAmountNum * 100);
 
+    // Convert amount to cents
+    const amountInCents = Math.round(totalAmount * 100);
+
+    // Create PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: 'aud',
-      description: `${productName} - ${billingType}`,
-      metadata: { productName, billingType },
+      payment_method_types: ['card'],
+      metadata: {
+        productName,
+        billingType,
+      },
     });
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
-  } catch (error: any) {
-    console.error('Stripe payment error:', error);
+  } catch (err: any) {
+    console.error('Stripe PaymentIntent error:', err.message);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: err.message || 'Internal Server Error' },
       { status: 500 }
     );
   }

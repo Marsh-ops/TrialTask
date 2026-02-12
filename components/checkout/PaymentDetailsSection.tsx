@@ -1,42 +1,48 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
 
 interface PaymentDetailsSectionProps {
-  planName: string;
-  total: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  companyName: string;
-  mobileNo: string;
-  businessAddress: string;
-  country: string;
+  planName?: string;
+  total?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  companyName?: string;
+  mobileNo?: string;
+  businessAddress?: string;
+  country?: string;
   onCountryChange: (value: string) => void;
-  onPayNow: () => void; // callback after successful payment
+  onPayNow: () => void;
 }
 
 const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
-  planName,
-  total,
-  firstName,
-  lastName,
-  email,
-  companyName,
-  mobileNo,
-  businessAddress,
-  country,
+  planName = 'No plan selected',
+  total = 0,
+  firstName = '',
+  lastName = '',
+  email = '',
+  companyName = '',
+  mobileNo = '',
+  businessAddress = '',
+  country = '',
   onCountryChange,
   onPayNow,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null; // Prevent SSR rendering issues
 
   const validateEmail = (email: string) => {
-    // Simple regex for email validation
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
   };
@@ -62,12 +68,11 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
       }
     }
 
-    // Validate email format
     if (!validateEmail(email)) {
       toast.error('Please enter a valid email address');
       return;
     }
-    
+
     setLoading(true);
 
     try {
@@ -83,7 +88,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
       });
 
       const data = await res.json();
-      if (!data.clientSecret) throw new Error('PaymentIntent not created');
+      if (!data.clientSecret) throw new Error(data.error || 'PaymentIntent not created');
 
       const cardElement = elements.getElement(CardElement);
       if (!cardElement) throw new Error('Card details not entered');
@@ -103,7 +108,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         toast.error(result.error.message || 'Payment failed');
       } else if (result.paymentIntent?.status === 'succeeded') {
         toast.success('✅ Payment successful!');
-        onPayNow(); // trigger parent callback
+        onPayNow();
       }
     } catch (err: any) {
       console.error(err);
@@ -123,7 +128,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
       <label className="block text-sm font-semibold">Country</label>
       <input
         type="text"
-        value={country ?? ''}
+        value={country}
         onChange={(e) => onCountryChange(e.target.value)}
         className="w-full px-3 py-2 border rounded"
       />
