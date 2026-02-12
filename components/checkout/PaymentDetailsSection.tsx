@@ -22,7 +22,7 @@ interface PaymentDetailsSectionProps {
   onCountryChange: (value: string) => void;
   onPayNow: () => void;
   loading?: boolean;
-  setLoading?: (val: boolean) => void;
+  setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
