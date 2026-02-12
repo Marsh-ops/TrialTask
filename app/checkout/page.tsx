@@ -9,18 +9,14 @@ import OrderSummary from '@/components/checkout/OrderSummary';
 import PaymentDetailsSection from '@/components/checkout/PaymentDetailsSection';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
+import toast, { Toaster } from 'react-hot-toast';
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const CheckoutPage = () => {
   const router = useRouter();
   const { planName, price, clearCart } = useCart();
 
-  // -----------------------------
-  // Form State
-  // -----------------------------
   const [formData, setFormData] = useState({
     companyName: '',
     firstName: '',
@@ -30,29 +26,19 @@ const CheckoutPage = () => {
     businessAddress: '',
   });
 
-  const [paymentData, setPaymentData] = useState({
-    country: '',
-  });
+  const [paymentData, setPaymentData] = useState({ country: '' });
+  const [loading, setLoading] = useState(false);
 
-  // -----------------------------
-  // Pricing
-  // -----------------------------
   const subtotal = price ?? 0;
   const gst = subtotal * 0.1;
   const total = subtotal + gst;
 
-  // -----------------------------
-  // Handlers
-  // -----------------------------
   const handleFormChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handlePaymentSuccess = () => {
-    // Clear cart
     clearCart();
-
-    // Reset forms
     setFormData({
       companyName: '',
       firstName: '',
@@ -61,31 +47,22 @@ const CheckoutPage = () => {
       mobileNo: '',
       businessAddress: '',
     });
-
     setPaymentData({ country: '' });
 
-    // Show success notification
-    alert('✅ Payment successful! Thank you for your purchase.');
-
-    // Redirect
-    router.push('/plans');
+    toast.success('✅ Payment successful!');
+    router.push('/plans'); // redirect to plans page
   };
 
-  // -----------------------------
-  // UI
-  // -----------------------------
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white py-12 px-4">
+      <Toaster position="top-right" />
       <div className="w-full max-w-5xl bg-white overflow-hidden">
         <CheckoutHeader />
 
         <div className="grid grid-cols-2 gap-12 p-6">
           {/* LEFT: Customer Form */}
           <div className="flex flex-col">
-            <CheckoutForm
-              formData={formData}
-              onChange={handleFormChange}
-            />
+            <CheckoutForm formData={formData} onChange={handleFormChange} />
           </div>
 
           {/* RIGHT: Order Summary */}
@@ -117,6 +94,8 @@ const CheckoutPage = () => {
                 setPaymentData((prev) => ({ ...prev, country: value }))
               }
               onPayNow={handlePaymentSuccess}
+              loading={loading}
+              setLoading={setLoading}
             />
           </Elements>
         </div>

@@ -7,6 +7,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+import toast from 'react-hot-toast';
 
 interface PaymentDetailsSectionProps {
   planName: string;
@@ -18,10 +19,10 @@ interface PaymentDetailsSectionProps {
   mobileNo: string;
   businessAddress: string;
   country: string;
-  loading?: boolean;
-  error?: string | null;
   onCountryChange: (value: string) => void;
-  onPayNow: () => void; // optional callback after successful payment
+  onPayNow: () => void;
+  loading?: boolean;
+  setLoading?: (val: boolean) => void;
 }
 
 const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
@@ -36,20 +37,20 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
   country,
   onCountryChange,
   onPayNow,
+  loading,
+  setLoading,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
 
   const handlePay = async () => {
-    if (!stripe || !elements) {
-      alert('Stripe has not loaded yet.');
-      return;
-    }
+    if (!stripe || !elements) return toast.error('Stripe not loaded yet');
+    if (loading) return;
 
-    // -------------------------
-    // Step 0: Validate required fields BEFORE creating PaymentIntent
-    // -------------------------
-    const requiredFields: { label: string; value: string }[] = [
+    setLoading?.(true);
+
+    // Validate required fields
+    const requiredFields = [
       { label: 'First Name', value: firstName },
       { label: 'Last Name', value: lastName },
       { label: 'Email', value: email },
@@ -61,15 +62,12 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
 
     for (const field of requiredFields) {
       if (!field.value.trim()) {
-        alert(`Please fill in your ${field.label}`);
-        return; // stop here if any field is empty
+        toast.error(`Please fill in your ${field.label}`);
+        setLoading?.(false);
+        return;
       }
     }
 
-    // -------------------------
-    // Step 1: Create PaymentIntent
-    // -------------------------
-    let clientSecret: string;
     try {
       const res = await fetch('/api/create-payment-intent', {
         method: 'POST',
@@ -81,27 +79,12 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         }),
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        console.error('Server returned non-JSON response:', text);
-        throw new Error('PaymentIntent creation failed');
-      }
-
       const data = await res.json();
-      clientSecret = data.clientSecret;
+      const clientSecret = data.clientSecret;
       if (!clientSecret) throw new Error('PaymentIntent not created');
-    } catch (error: any) {
-      console.error('Payment creation error:', error);
-      alert(`Payment error: ${error.message || error}`);
-      return;
-    }
 
-    // -------------------------
-    // Step 2: Confirm payment
-    // -------------------------
-    try {
       const cardElement = elements.getElement(CardNumberElement);
-      if (!cardElement) throw new Error('Card element not found');
+      if (!cardElement) throw new Error('Card details not entered');
 
       const result = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
@@ -115,20 +98,21 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
       });
 
       if (result.error) {
-        console.error('Stripe confirmCardPayment error:', result.error);
-        alert(`Payment failed: ${result.error.message}`);
+        toast.error(result.error.message || 'Payment failed');
       } else if (result.paymentIntent?.status === 'succeeded') {
-        onPayNow?.(); // clear cart, form, or trigger post-payment actions
+        onPayNow?.();
       }
-    } catch (error: any) {
-      console.error('Payment confirmation error:', error);
-      alert(`Payment error: ${error.message || error}`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Payment error');
     }
+
+    setLoading?.(false);
   };
 
   return (
     <div className="grid grid-cols-4 gap-4">
-      {/* Card Number + Country */}
+      {/* Card + Country */}
       <div className="col-span-2 space-y-4">
         <label className="block text-sm font-semibold">Card Number</label>
         <div className="px-3 py-2 border rounded">
@@ -152,17 +136,18 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         </div>
       </div>
 
-      {/* CVC + Pay Now */}
+      {/* CVC + Pay */}
       <div className="space-y-4">
         <label className="block text-sm font-semibold">CVC</label>
         <div className="px-3 py-2 border rounded">
           <CardCvcElement options={{ style: { base: { fontSize: '16px' } } }} />
         </div>
         <button
+          disabled={loading}
           onClick={handlePay}
-          className="w-full bg-[#002a25] text-white py-3 rounded mt-2 hover:bg-[#003d35] transition-colors"
+          className="w-full bg-[#002a25] text-white py-3 rounded mt-2 hover:bg-[#003d35] transition-colors disabled:opacity-50"
         >
-          Pay Now
+          {loading ? 'Processing...' : 'Pay Now'}
         </button>
       </div>
     </div>
