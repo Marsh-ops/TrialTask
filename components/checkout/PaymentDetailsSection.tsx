@@ -122,7 +122,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         <label className="block text-sm font-semibold">Country</label>
         <input
           type="text"
-          value={country}
+          value={country ?? ''}
           onChange={(e) => onCountryChange(e.target.value)}
           className="w-full px-3 py-2 border rounded"
         />

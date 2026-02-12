@@ -8,14 +8,14 @@ export async function POST(req: NextRequest) {
     });
     const { productName, billingType, totalAmount } = await req.json();
 
-    if (!totalAmount || totalAmount <= 0) {
+    const totalAmountNum = Number(totalAmount);
+    if (!totalAmountNum || totalAmountNum <= 0) {
       return NextResponse.json(
         { error: 'Invalid total amount' },
         { status: 400 }
       );
     }
-
-    const amountInCents = Math.round(totalAmount * 100);
+    const amountInCents = Math.round(totalAmountNum * 100);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
