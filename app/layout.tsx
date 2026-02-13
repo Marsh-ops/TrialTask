@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer"
 import { CartProvider } from "@/components/CartContext";
+import HeaderContent from "@/components/HeaderContent";
 
 export const metadata: Metadata = {
   title: "Anderson",
@@ -18,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased`}>
         <CartProvider>
-        <Header />
+        <HeaderContent />
           {children}  
         <Footer />
         </CartProvider>

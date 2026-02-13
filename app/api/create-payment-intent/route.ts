@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Use your STRIPE_SECRET_KEY (server-side only)
+// @ts-ignore
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-01-28.clover',
 });

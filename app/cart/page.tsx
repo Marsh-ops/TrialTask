@@ -10,11 +10,11 @@ import CheckoutButton from '@/components/cart/CheckoutButton';
 import CouponCodeSection from '@/components/cart/CouponCodeSection';
 
 const CartPage = () => {
-  const { planName, price, billingType } = useCart(); // <- include billingType
+  const { planName, price, finalPrice, billingType } = useCart(); // <- include billingType
   const [termsAgreed, setTermsAgreed] = useState(false);
 
-  const subtotal = price ?? 0;
-  const gst = subtotal * 0.1; // Example 10% GST
+  const subtotal = finalPrice ?? price ?? 0; // use discounted price if available
+  const gst = subtotal * 0.1;
   const total = subtotal + gst;
 
   return (

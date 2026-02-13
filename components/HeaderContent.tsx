@@ -13,7 +13,7 @@ const HeaderContent: React.FC = () => {
     if (finalPrice === null) return '';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'AUD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(finalPrice);
@@ -42,10 +42,14 @@ const HeaderContent: React.FC = () => {
           <Link href="/cart" aria-label="View Cart">
             <button className="flex items-center gap-2 bg-white text-black py-2 px-4 rounded shadow hover:bg-gray-100 transition-colors">
               <ShoppingCart size={24} weight="bold" />
-              {finalPrice !== null && planName && (
+
+              {/* Show plan only if something is in cart */}
+              {planName && finalPrice !== null ? (
                 <span>
-                  {planName} – {billingType === 'annual' ? 'Annual' : 'Monthly'}: {formattedPrice}
+                  {planName} – {billingType === 'annual' ? 'Annual' : 'Monthly'}: ${finalPrice.toFixed(2)}
                 </span>
+              ) : (
+                <span>Cart</span>
               )}
             </button>
           </Link>
