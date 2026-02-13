@@ -5,12 +5,13 @@ import toast from 'react-hot-toast';
 
 interface CartContextType {
   planName: string | null;
-  price: number | null;
+  price: number | null;               // original price
   billingType: 'monthly' | 'annual' | null;
   setPlan: (name: string, price: number, billing: 'monthly' | 'annual') => void;
   clearCart: () => void;
   applyCoupon: (code: string) => void;
-  discount: number;
+  discount: number;                   // absolute discount value
+  finalPrice: number | null;          // price after discount
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -42,7 +43,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     switch (normalizedCode) {
       case 'SAVE10':
-        setDiscount(price * 0.1);
+        setDiscount(price * 0.1); // 10% off
         toast.success('Coupon applied: 10% off!');
         break;
       default:
@@ -51,10 +52,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Compute final price after discount
+  const finalPrice = useMemo(() => {
+    if (price === null) return null;
+    return Math.max(price - discount, 0);
+  }, [price, discount]);
+
   // Memoize context value to avoid unnecessary re-renders
   const contextValue = useMemo(
-    () => ({ planName, price, billingType, setPlan, clearCart, applyCoupon, discount }),
-    [planName, price, billingType, discount]
+    () => ({ planName, price, billingType, setPlan, clearCart, applyCoupon, discount, finalPrice }),
+    [planName, price, billingType, discount, finalPrice]
   );
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>;

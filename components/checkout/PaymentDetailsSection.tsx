@@ -157,7 +157,7 @@ const PaymentDetailsSection: React.FC<PaymentDetailsSectionProps> = ({
         />
       </div>
 
-      <label className="block text-sm font-semibold">Country</label>
+      <label className="block text-sm font-semibold">Country (Example: AU, US, NZ etc)</label>
       <input
         type="text"
         value={country}

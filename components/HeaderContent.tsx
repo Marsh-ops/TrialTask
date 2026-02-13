@@ -7,17 +7,17 @@ import { ShoppingCart } from '@phosphor-icons/react';
 import { useCart } from '@/components/CartContext';
 
 const HeaderContent: React.FC = () => {
-  const { planName, price, billingType } = useCart();
+  const { planName, finalPrice, billingType } = useCart(); // use finalPrice instead of price
 
   const formattedPrice = useMemo(() => {
-    if (!price) return '';
+    if (finalPrice === null) return '';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
-  }, [price]);
+    }).format(finalPrice);
+  }, [finalPrice]);
 
   return (
     <header className="bg-[#002a25] text-white px-6 py-4">
@@ -42,7 +42,7 @@ const HeaderContent: React.FC = () => {
           <Link href="/cart" aria-label="View Cart">
             <button className="flex items-center gap-2 bg-white text-black py-2 px-4 rounded shadow hover:bg-gray-100 transition-colors">
               <ShoppingCart size={24} weight="bold" />
-              {price !== null && planName && (
+              {finalPrice !== null && planName && (
                 <span>
                   {planName} – {billingType === 'annual' ? 'Annual' : 'Monthly'}: {formattedPrice}
                 </span>
