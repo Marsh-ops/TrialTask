@@ -9,6 +9,11 @@ interface OrderSummaryProps {
   gst: string;
   total: string;
   billingType: 'monthly' | 'annual' | null;
+
+  couponCode: string;
+  setCouponCode: (value: string) => void;
+  onApplyCoupon: () => void;
+  discount: number;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -18,6 +23,10 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   gst,
   total,
   billingType,
+  couponCode,
+  setCouponCode,
+  onApplyCoupon,
+  discount,
 }) => {
   return (
     <div className="flex flex-col h-full">
@@ -36,6 +45,27 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
         <div className="text-right mt-3">
           <span className="text-gray-700 font-bold">{planPrice}</span>
+        </div>
+      </div>
+
+      {/* Coupon Section */}
+      <div className="grid grid-cols-3 gap-2 items-center mt-4">
+        <div className="col-span-2">
+          <input
+            type="text"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value)}
+            placeholder="Enter coupon code"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#002a25] focus:border-transparent"
+          />
+        </div>
+        <div>
+          <button
+            onClick={onApplyCoupon}
+            className="w-full bg-[#002a25] text-white py-2 rounded-lg font-semibold hover:bg-[#003d35] transition-colors"
+          >
+            Apply
+          </button>
         </div>
       </div>
 
