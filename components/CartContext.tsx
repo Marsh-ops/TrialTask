@@ -12,6 +12,8 @@ interface CartContextType {
   applyCoupon: (code: string) => void;
   discount: number;                   // absolute discount value
   finalPrice: number | null;          // price after discount
+  paymentSuccess: boolean;                 // ✅ new
+  setPaymentSuccess: React.Dispatch<React.SetStateAction<boolean>>; 
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [price, setPrice] = useState<number | null>(null);
   const [billingType, setBillingType] = useState<'monthly' | 'annual' | null>(null);
   const [discount, setDiscount] = useState(0);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const setPlan = (name: string, selectedPrice: number, billing: 'monthly' | 'annual') => {
     setPlanName(name);
@@ -60,8 +63,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   // Memoize context value to avoid unnecessary re-renders
   const contextValue = useMemo(
-    () => ({ planName, price, billingType, setPlan, clearCart, applyCoupon, discount, finalPrice }),
-    [planName, price, billingType, discount, finalPrice]
+    () => ({ planName, price, billingType, setPlan, clearCart, applyCoupon, discount, finalPrice, paymentSuccess, setPaymentSuccess, }),
+    [planName, price, billingType, discount, finalPrice, paymentSuccess, setPaymentSuccess,]
   );
 
   return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>;

@@ -9,11 +9,12 @@ import { Elements, useStripe, useElements, CardNumberElement, } from '@stripe/re
 import { loadStripe } from '@stripe/stripe-js';
 import { useCart } from '@/components/CartContext';
 import { useRouter } from 'next/navigation';
+import { startTransition } from 'react';
 
 const stripePromise = loadStripe('pk_test_51HFvWoLue0GvB8uyReGdQz0zOjJoy5ovZNTkdqaSnK5zBwmi7x5fhtipu2kmfqAgHrDupYwwUVvHRR0pwiDLJ6KY00GqLrdcr7');
 
 const CheckoutPageContent = () => {
-  const { planName, finalPrice, billingType, discount, applyCoupon, clearCart } = useCart();
+  const { planName, finalPrice, billingType, discount, applyCoupon, clearCart, setPaymentSuccess } = useCart();
   const router = useRouter();
 
   const [couponCode, setCouponCode] = useState('');
@@ -76,13 +77,11 @@ const CheckoutPageContent = () => {
         alert(`Payment failed: ${error.message}`);
       } else if (paymentIntent?.status === 'succeeded') {
         clearCart();
-
-        // Use a microtask to ensure router.push works in production
-        setTimeout(() => {
+        setPaymentSuccess(true);
+        startTransition(() => {
           router.push('/plans');
-        }, 50);
+        });
       }
-
     } catch (err: any) {
       alert(`Payment error: ${err.message}`);
       console.error(err);
