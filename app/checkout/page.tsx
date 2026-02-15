@@ -75,13 +75,11 @@ const CheckoutPageContent = () => {
       if (error) {
         alert(`Payment failed: ${error.message}`);
       } else if (paymentIntent?.status === 'succeeded') {
-        //alert('Payment successful!');
         clearCart();
-        
-        // redirect happens after state updates
+        console.log('Payment succeeded, navigating to /plans');
         setTimeout(() => {
           router.push('/plans');
-        }, 0);
+        }, 100); // 100ms ensures state update
       }
     } catch (err: any) {
       alert(`Payment error: ${err.message}`);
