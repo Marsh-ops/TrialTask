@@ -75,7 +75,7 @@ const CheckoutPageContent = () => {
       if (error) {
         alert(`Payment failed: ${error.message}`);
       } else if (paymentIntent?.status === 'succeeded') {
-        alert('Payment successful!');
+        //alert('Payment successful!');
         clearCart();
         
         // redirect happens after state updates
