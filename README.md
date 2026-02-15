@@ -1,6 +1,6 @@
 # Next.js Stripe Checkout – Trial Task
 
-Test it here: [[https://trial-task-pi.vercel.app/](https://vercel.com/marshalls-projects-becc30e8/anderson-trial-task/EiBAiKGpQVUV2MGcTLQtAddeRKCm)](https://anderson-trial-task.vercel.app/)
+Test it here: https://anderson-trial-task.vercel.app/
 
 A fully functional Stripe-powered checkout system built with Next.js 13 (App Router) and TypeScript.
 
