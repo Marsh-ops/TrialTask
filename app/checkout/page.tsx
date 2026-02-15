@@ -76,16 +76,19 @@ const CheckoutPageContent = () => {
         alert(`Payment failed: ${error.message}`);
       } else if (paymentIntent?.status === 'succeeded') {
         clearCart();
-        console.log('Payment succeeded, navigating to /plans');
+
+        // Use a microtask to ensure router.push works in production
         setTimeout(() => {
           router.push('/plans');
-        }, 100); // 100ms ensures state update
+        }, 50);
       }
+
     } catch (err: any) {
       alert(`Payment error: ${err.message}`);
       console.error(err);
     }
   };
+    
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white py-12 px-4">
