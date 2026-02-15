@@ -8,8 +8,10 @@ import PaymentDetailsSection from '@/components/checkout/PaymentDetailsSection';
 import { Elements, useStripe, useElements, CardNumberElement, } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { useCart } from '@/components/CartContext';
+import { useRouter } from 'next/navigation';
 
 const stripePromise = loadStripe('pk_test_51HFvWoLue0GvB8uyReGdQz0zOjJoy5ovZNTkdqaSnK5zBwmi7x5fhtipu2kmfqAgHrDupYwwUVvHRR0pwiDLJ6KY00GqLrdcr7');
+const router = useRouter();
 
 const CheckoutPageContent = () => {
   const { planName, finalPrice, billingType, discount, applyCoupon, clearCart } = useCart();
@@ -75,6 +77,7 @@ const CheckoutPageContent = () => {
       } else if (paymentIntent?.status === 'succeeded') {
         alert('Payment successful!');
         clearCart();
+        router.push('/plans');
       }
     } catch (err: any) {
       alert(`Payment error: ${err.message}`);
